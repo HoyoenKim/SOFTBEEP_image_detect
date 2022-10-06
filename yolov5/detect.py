@@ -45,7 +45,7 @@ from utils.general import (LOGGER, Profile, check_file, check_img_size, check_im
                            increment_path, non_max_suppression, print_args, scale_coords, strip_optimizer, xyxy2xywh)
 from utils.plots import Annotator, colors, save_one_box
 from utils.torch_utils import select_device, smart_inference_mode
-
+import json
 
 @smart_inference_mode()
 def run(
@@ -131,6 +131,7 @@ def run(
         # pred = utils.general.apply_classifier(pred, classifier_model, im, im0s)
 
         # Process predictions
+
         for i, det in enumerate(pred):  # per image
             seen += 1
             if webcam:  # batch_size >= 1
@@ -201,7 +202,19 @@ def run(
 
         # Print time (inference-only)
         LOGGER.info(f"{s}{'' if len(det) else '(no detections), '}{dt[1].dt * 1E3:.1f}ms")
-
+        detect_log = {}
+        detect_log['summary'] = s
+        detect_save = []
+        for det_ret in list(det):
+            detect_save_ele = []
+            for cord in list(det_ret):
+                detect_save_ele.append(cord.item())
+            detect_save.append(detect_save_ele)
+        detect_log['detect_result'] = detect_save
+        print(detect_log)
+        log_path = '/home/softbeep/Desktop/image_detect/detect_log.json'
+        with open(log_path, 'w') as outfile:
+            json.dump(detect_log, outfile)
     # Print results
     t = tuple(x.t / seen * 1E3 for x in dt)  # speeds per image
     LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS per image at shape {(1, 3, *imgsz)}' % t)
